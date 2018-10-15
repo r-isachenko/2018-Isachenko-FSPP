@@ -1,3 +1,4 @@
+#Latex
 *.synctex.gz
 *.log
 *.aux
@@ -9,12 +10,15 @@
 *.bbl
 *.blg
 
+#Python
 *.pyc
-
-*untracked/
 *__pycache__/
 *.DS_Store
 *.ipynb_checkpoints/
+*.idea/
+
+#Folders
 *data/
 *res/
 *results/
+*untracked/
