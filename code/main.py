@@ -9,14 +9,14 @@ import torch.nn as nn
 from models import Encoder, Decoder
 from sampler import RandomSampler, binary2idx
 
-N_FEATURES = 10
-EMBED_SIZE = 2
-HID_SIZE = 5
-ENCODER_SIZES = [5] * 5
-DECODER_SIZES = [5] * 5
+N_FEATURES = 100
+EMBED_SIZE = 20
+HID_SIZE = 10
+ENCODER_SIZES = [20]
+DECODER_SIZES = [30]
 N_ITERS = 10000
 BATCH_SIZE = 1024
-LR = .1
+LR = 1.
 
 
 class Trainer:
@@ -45,13 +45,13 @@ class Trainer:
             seq, offsets = self.batch2input(batch)
             encoding = self.encoder(seq, offsets)
 
-            pred = self.decoder(encoding)
+            logits = self.decoder(encoding)
             gt = torch.tensor(batch, dtype=torch.float32)
 
             self.encoder_optimizer.zero_grad()
             self.decoder_optimizer.zero_grad()
 
-            loss = self.criterion(pred, gt)
+            loss = self.criterion(logits, gt)
 
             loss.backward()
 
