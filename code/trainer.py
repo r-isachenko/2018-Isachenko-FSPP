@@ -32,17 +32,17 @@ class Trainer:
 
     def train(self):
         iterator = tqdm(range(self.n_iters))
-        for n_iter in iterator:
+        for _ in iterator:
             self.encoder_scheduler.step()
             self.decoder_scheduler.step()
             batch = self.sampler.generate(n_samples=self.batch_size)
-            seq, offsets = self.batch2input(batch)
-            encoding = self.encoder(seq, offsets)
 
             gt = torch.tensor(batch, dtype=torch.float32).to(self.device)
+            inp = gt * 2 - 1
+            encoding = self.encoder(inp)
 
             logits = self.decoder(encoding)
-            hamming = torch.mean(torch.lt(logits * (gt - 0.5), 0).to(self.device, dtype=torch.float32))
+            hamming = torch.mean(torch.lt(logits * inp, 0).to(self.device, dtype=torch.float32))
 
             self.encoder_optimizer.zero_grad()
             self.decoder_optimizer.zero_grad()
