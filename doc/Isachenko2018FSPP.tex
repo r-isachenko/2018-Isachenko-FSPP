@@ -34,7 +34,14 @@
 \usepackage{caption}
 
 \newcommand{\bX}{\mathbf{X}}
-\newcommand{\bR}{\mathbb{R}}
+\newcommand{\ba}{\mathbf{a}}
+\newcommand{\bx}{\mathbf{x}}
+\newcommand{\by}{\mathbf{y}}
+\newcommand{\bu}{\mathbf{u}}
+\newcommand{\bw}{\mathbf{w}}
+\newcommand{\cA}{\mathcal{A}}
+\newcommand{\bbB}{\mathbb{B}}
+\newcommand{\bbR}{\mathbb{R}}
 
 %\renewcommand{\baselinestretch}{1.4}
 
@@ -46,12 +53,48 @@
 	\title{Feature Selection via Perfomance Prediction Model}
 \date{}
 \maketitle
-\begin{center}
-	R.\,V.~Isachenko,
-	V.\,V.~Strijov
-\end{center}
 
-\section{Problem Formulation}
+Let we are given dataset $(\bX, \by)$, where $\bX \in \bbR^{m \times n}$ is a design matrix, $\by \in \bbR^m$ is a target vector. The set~$\cA \subseteq \{1, \dots, n\}$ indicates subset of features. 
+There is a correspondence between the set~$\cA$ and binary vectors~$\ba \in \bbB^n$:
+\[
+	\cA = \{j: a_j = 1\}.
+\]
+Function $f(\bx, \bw, \cA)$ predicts $y$ given the object~$\bx$ and using only features from the set~$\cA$. 
+We split our data into train $(\bX_{\text{tr}}, \by_{\text{tr}})$ and test $(\bX_{\text{te}}, \by_{\text{te}})$ parts. To measure the quality of the model~$f$ we introduce the error function~$s(\bw, \bX, \by, \cA)$. On the training stage we find the optinal parameters~$\bw^*$
+\[
+	\bw^* = \argmin_{\bw} s(\bw, \bX_{\text{tr}}, \by_{\text{tr}}, \cA).
+\]
+Then we estimate the error on the test data~$s(\bw^*, \bX_{\text{te}}, \by_{\text{te}}, \cA)$. 
+The goal is to find the optimal feature subset~$\cA^*$, which minimizes the test error.  
 
+We propose the following procedure. Let create the dataset $\{(\ba_i, s_i)\}_{i=1}^N$. We sample $N$ vectors $\ba$ from the binary cube~$\bbB^n$. Then we evaluate the test error $s_i$ for each feature subset~$\ba_i$. The idea is to change the discrete domain~$\bbB^n$ to the continious one with smaller dimensionality~$h < n$. We propose to embed feature indicator vector~$\ba$ into continious representation~$\bu \in \bbR^h$. This embedding is performed by encoder model~$e(\ba, \bw_e)$. Then performance prediction model~$p(\bu, \bw_p)$ tries to predict the test error $s$. The model has the form~$s=p(\bu, \bw_p) = p(e(\ba, \bw_e), \bw_p)$. We could use any loss function to estimate parameters~$\bw_e, \bw_p$. For example it could be squared error
+\[
+	L_{error}(\bw_e, \bw_p, \ba, s) = \| p(e(\ba, \bw_e), \bw_p) - s \| ^2 \rightarrow \min_{\bw_e, \bw_p}.
+\]
+We also need the model to reconstruct the vector~$\ba$ from the continuous representation~$\bu$. This model is called decoder~$\sigma(\bu, \bw_{\sigma})$. We introduce the reconstruction loss as the cross-entropy between initial vector~$\ba$ and the output of the decoder~$\sigma$
+\[
+	L_{rec}(\bw_e, \bw_\sigma, \ba) = \sum_{i=1}^n a_i \log(\sigma_i) + (1 - a_i) \log (1 - \sigma_i) \rightarrow \min_{\bw_e, \bw_\sigma}.
+\]
+Here $\sigma_i = \sigma(e(\ba, \bw_e), \bw_{\sigma})_i$.
+
+The final loss function is given by combination of the prediction performation loss and reconstruction loss
+\[
+	L = L_{error} + \alpha L_{rec}.
+\]
+
+When the parameters~$\bw_e, \bw_p, \bw_\sigma$ are estimated we could find the most appropriate feature subset.
+We maximizes performance prediction model in the following way
+\[
+	\bu^* = \argmax_{\bu} p(\bu, \bw_p).
+\]
+To recover the feature vector~$\ba$ we use the decoder model
+\[
+	\ba^* = \sigma(\bu^*, \bw_\sigma).
+\]
+
+\begin{figure}
+	\centering
+	\includegraphics[width=0.8\linewidth]{figs/schema}
+\end{figure}
 
 \end{document}
